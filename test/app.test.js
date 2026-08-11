@@ -34,6 +34,12 @@ async function withServer(run, { seed = false } = {}) {
   finally { await new Promise((resolve) => server.close(resolve)); database.close(); }
 }
 
+test('health check confirma disponibilidade do servico', () => withServer(async ({ baseUrl }) => {
+  const response = await fetch(`${baseUrl}/health`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { status: 'ok', service: 'vertice' });
+}));
+
 test('painel apresenta propósito e indicadores', () => withServer(async ({ baseUrl }) => {
   const response = await fetch(baseUrl);
   assert.equal(response.status, 200);
