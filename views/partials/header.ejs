@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Vértice: PWA experimental para inspeções em campo.">
+  <meta name="theme-color" content="#173fe7">
+  <title><%= title %> | Vértice</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css?v=0.1.1">
+  <script src="/app.js?v=0.1.1" defer></script>
+  <script src="/offline-queue.js?v=0.1.1" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="Vértice, página inicial"><span class="brand-mark" aria-hidden="true">V</span><span>Vértice</span></a>
+      <span class="connection"><span data-connection aria-live="polite">Online</span><span class="queue-badge">Fila <strong data-queue-count>0</strong></span></span>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/" <%= path === '/' ? 'aria-current="page"' : '' %>>Painel</a>
+        <a href="/inspecoes" <%= path.startsWith('/inspecoes') && path !== '/inspecoes/nova' ? 'aria-current="page"' : '' %>>Inspeções</a>
+        <a href="/inspecoes/nova" <%= path === '/inspecoes/nova' ? 'aria-current="page"' : '' %>>Nova</a>
+      </nav>
+    </div>
+  </header>
+  <main id="conteudo">

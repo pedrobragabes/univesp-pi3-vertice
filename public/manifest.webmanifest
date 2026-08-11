@@ -1,0 +1,14 @@
+{
+  "name": "Vértice - Inspeções em campo",
+  "short_name": "Vértice",
+  "description": "PWA experimental para inspeções e ocorrências em campo.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1efe6",
+  "theme_color": "#173fe7",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

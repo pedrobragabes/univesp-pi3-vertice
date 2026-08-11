@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<section class="page-hero"><div class="shell"><p class="kicker"><%= item.tipo %></p><h1 class="page-title"><%= item.titulo %></h1><p class="page-intro"><%= item.local %></p></div></section>
+<section class="section"><div class="shell">
+  <% if (created) { %><div class="notice" role="status"><strong>Inspeção registrada.</strong> A ficha já está disponível na API e no painel.</div><% } %>
+  <div class="detail-grid">
+    <article class="panel">
+      <div class="card-top"><span class="tag status-<%= item.status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() %>"><%= item.status %></span><span class="tag">Ficha #<%= item.id %></span></div>
+      <h2>Checklist</h2><div class="result-list"><% for (const check of item.items) { %><section class="result"><div class="card-top"><h3><%= check.rotulo %></h3><span class="tag"><%= check.resultado %></span></div><p><%= check.observacao || 'Sem observação adicional.' %></p></section><% } %></div>
+      <h2>Observações gerais</h2><p><%= item.observacoes || 'Sem observações gerais.' %></p>
+    </article>
+    <aside class="panel">
+      <h2>Dados da ficha</h2><dl class="fact-list"><div class="fact"><dt>Responsável</dt><dd><%= item.responsavel %></dd></div><div class="fact"><dt>Registrada</dt><dd><%= formatDate(item.created_at) %></dd></div><div class="fact"><dt>Posição</dt><dd><%= item.latitude === null ? 'Não coletada' : `${item.latitude}, ${item.longitude}` %></dd></div></dl>
+      <h2>Atualizar estado</h2><form method="post" action="/inspecoes/<%= item.id %>/status"><div class="field"><label for="status">Status</label><select id="status" name="status"><% for (const status of inspectionStatuses) { %><option value="<%= status %>" <%= item.status === status ? 'selected' : '' %>><%= status %></option><% } %></select></div><div class="form-actions"><button class="button" type="submit">Atualizar</button></div></form>
+    </aside>
+  </div>
+</div></section>
+<%- include('../partials/footer') %>

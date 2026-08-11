@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<section class="page-hero"><div class="shell"><p class="kicker">Arquivo de campo</p><h1 class="page-title">Inspeções</h1><p class="page-intro">Consulte fichas sincronizadas por estado, tipo ou termo. Rascunhos que ainda estão somente neste dispositivo aparecem no contador local.</p></div></section>
+<section class="section"><div class="shell">
+  <form class="panel filter-panel" method="get" action="/inspecoes" role="search">
+    <div class="form-grid">
+      <div class="field full"><label for="busca">Buscar</label><input id="busca" name="busca" value="<%= filters.search %>" placeholder="Título, local ou responsável"></div>
+      <div class="field"><label for="status">Status</label><select id="status" name="status"><option value="">Todos</option><% for (const status of inspectionStatuses) { %><option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option><% } %></select></div>
+      <div class="field"><label for="tipo">Tipo</label><select id="tipo" name="tipo"><option value="">Todos</option><% for (const type of inspectionTypes) { %><option value="<%= type %>" <%= filters.type === type ? 'selected' : '' %>><%= type %></option><% } %></select></div>
+    </div>
+    <div class="form-actions"><button class="button" type="submit">Filtrar</button><a class="button button-light" href="/inspecoes">Limpar</a></div>
+  </form>
+  <div class="section-head"><h2><%= items.length %> <%= items.length === 1 ? 'ficha' : 'fichas' %></h2><p><strong data-queue-count>0</strong> aguardando sincronização neste dispositivo.</p></div>
+  <% if (items.length) { %><div class="inspection-grid"><% for (const item of items) { %><article class="inspection-card"><div class="card-top"><span class="tag"><%= item.tipo %></span><span class="tag status-<%= item.status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() %>"><%= item.status %></span></div><h3><%= item.titulo %></h3><p><%= item.local %></p><p class="alert-count"><%= item.alertas %> em atenção</p><a class="card-link" href="/inspecoes/<%= item.id %>">Abrir ficha →</a></article><% } %></div><% } else { %><div class="empty"><h2>Nenhuma ficha encontrada</h2><p>Remova um filtro ou <a href="/inspecoes/nova">inicie uma inspeção</a>.</p></div><% } %>
+</div></section>
+<%- include('../partials/footer') %>

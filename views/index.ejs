@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="shell hero-grid">
+    <div>
+      <p class="kicker">Operação em campo</p>
+      <h1>Observe.<br><span>Registre.</span><br>Resolva.</h1>
+      <p class="hero-copy">Uma PWA para transformar vistorias dispersas em checklists rastreáveis — mesmo quando a conexão não acompanha a equipe.</p>
+      <div class="hero-actions"><a class="button" href="/inspecoes/nova">Iniciar inspeção</a><a class="button button-light" href="/inspecoes">Consultar registros</a></div>
+    </div>
+    <aside class="field-card">
+      <p class="kicker">Estado do dispositivo</p>
+      <h2>Pronto para o próximo ponto.</h2>
+      <p>O formulário funciona com HTML normal. Quando o JavaScript está disponível, uma cópia pode permanecer no dispositivo até a rede voltar.</p>
+      <div class="queue-line"><span>Na fila local</span><strong data-queue-count>0</strong></div>
+    </aside>
+  </div>
+</section>
+
+<section class="stats" aria-label="Resumo das inspeções">
+  <div class="shell stats-grid">
+    <div class="stat"><strong><%= indicators.total %></strong><span>registros</span></div>
+    <div class="stat"><strong><%= indicators.enviadas %></strong><span>em análise</span></div>
+    <div class="stat"><strong><%= indicators.concluidas %></strong><span>concluídos</span></div>
+    <div class="stat"><strong><%= indicators.locais %></strong><span>locais</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="shell">
+    <div class="section-head"><div><p class="kicker">Últimas fichas</p><h2>Registros recentes</h2></div><p>Os dois registros iniciais são fictícios e existem apenas para demonstrar a interface e os indicadores.</p></div>
+    <div class="inspection-grid">
+      <% for (const item of recent) { %>
+        <article class="inspection-card">
+          <div class="card-top"><span class="tag"><%= item.tipo %></span><span class="tag status-<%= item.status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() %>"><%= item.status %></span></div>
+          <h3><%= item.titulo %></h3><p><%= item.local %></p>
+          <p class="alert-count"><%= item.alertas %> <%= item.alertas === 1 ? 'ponto de atenção' : 'pontos de atenção' %></p>
+          <a class="card-link" href="/inspecoes/<%= item.id %>">Abrir ficha →</a>
+        </article>
+      <% } %>
+    </div>
+  </div>
+</section>
+<%- include('partials/footer') %>

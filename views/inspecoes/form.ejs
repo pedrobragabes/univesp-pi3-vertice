@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<section class="page-hero"><div class="shell"><p class="kicker">Ficha operacional</p><h1 class="page-title">Nova inspeção</h1><p class="page-intro">Preencha o checklist no local. A posição é opcional e só será solicitada quando você acionar o botão.</p></div></section>
+<section class="section"><div class="shell">
+  <form class="panel" method="post" action="/inspecoes" data-offline-form>
+    <input type="hidden" name="client_id" value="<%= item.clientId || '' %>">
+    <% if (errors.length) { %><div class="error-box" role="alert"><h2>Revise a ficha</h2><ul><% for (const error of errors) { %><li><%= error %></li><% } %></ul></div><% } %>
+    <div class="form-grid">
+      <div class="field full"><label for="titulo">Título da inspeção</label><input id="titulo" name="titulo" minlength="5" maxlength="120" required value="<%= item.title || '' %>" placeholder="Ex.: vistoria da entrada principal"></div>
+      <div class="field"><label for="tipo">Tipo</label><select id="tipo" name="tipo" required><option value="">Selecione</option><% for (const type of inspectionTypes) { %><option value="<%= type %>" <%= item.type === type ? 'selected' : '' %>><%= type %></option><% } %></select></div>
+      <div class="field"><label for="status">Situação inicial</label><select id="status" name="status"><option value="Enviada" <%= item.status === 'Enviada' ? 'selected' : '' %>>Enviada</option><option value="Rascunho" <%= item.status === 'Rascunho' ? 'selected' : '' %>>Rascunho</option></select></div>
+      <div class="field full"><label for="local">Local</label><input id="local" name="local" maxlength="160" required value="<%= item.place || '' %>" placeholder="Identifique o espaço sem expor endereço pessoal"></div>
+      <div class="field full"><label for="responsavel">Responsável pelo registro</label><input id="responsavel" name="responsavel" maxlength="100" required value="<%= item.responsible || '' %>"></div>
+      <div class="field"><label for="latitude">Latitude <span class="hint">(opcional)</span></label><input id="latitude" name="latitude" inputmode="decimal" value="<%= item.latitude ?? '' %>"></div>
+      <div class="field"><label for="longitude">Longitude <span class="hint">(opcional)</span></label><input id="longitude" name="longitude" inputmode="decimal" value="<%= item.longitude ?? '' %>"></div>
+      <div class="field full"><div class="location-tools"><button class="button button-light" type="button" data-location-button>Usar posição atual</button><span class="hint" aria-live="polite" data-location-status>A localização não é coletada automaticamente.</span></div></div>
+    </div>
+    <div class="checklist">
+      <% for (const check of checklist) { const saved = item.items?.find((candidate) => candidate.code === check.code) || {}; %>
+        <fieldset class="check-item" data-check-item data-code="<%= check.code %>" data-label="<%= check.label %>"><legend><%= check.label %></legend><div class="check-item-grid"><div class="field"><label for="resultado_<%= check.code %>">Resultado</label><select id="resultado_<%= check.code %>" name="resultado_<%= check.code %>" required><option value="">Selecione</option><% for (const result of itemResults) { %><option value="<%= result %>" <%= saved.result === result ? 'selected' : '' %>><%= result %></option><% } %></select></div><div class="field"><label for="observacao_<%= check.code %>">Observação</label><textarea id="observacao_<%= check.code %>" name="observacao_<%= check.code %>" maxlength="500"><%= saved.note || '' %></textarea></div></div></fieldset>
+      <% } %>
+    </div>
+    <div class="field full"><label for="observacoes">Observações gerais</label><textarea id="observacoes" name="observacoes" maxlength="1500"><%= item.notes || '' %></textarea></div>
+    <div class="form-actions"><button class="button button-blue" type="submit">Salvar inspeção</button><a class="button button-light" href="/inspecoes">Cancelar</a></div>
+    <p class="sync-status" aria-live="polite" data-sync-status></p>
+  </form>
+</div></section>
+<%- include('../partials/footer') %>
