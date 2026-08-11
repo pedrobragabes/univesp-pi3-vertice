@@ -1,6 +1,19 @@
 # Vértice — Projeto Integrador III
 
+[![CI](https://github.com/pedrobragabes/univesp-pi3-vertice/actions/workflows/ci.yml/badge.svg)](https://github.com/pedrobragabes/univesp-pi3-vertice/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/pedrobragabes/univesp-pi3-vertice/actions/workflows/codeql.yml/badge.svg)](https://github.com/pedrobragabes/univesp-pi3-vertice/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo. O projeto combina interface web responsiva, API própria, SQLite, service worker e fila offline em IndexedDB. Ele é independente do Conecta Bairro e do Nexo.
+
+## Estado
+
+| Dimensão | Situação |
+|---|---|
+| fundação técnica | concluída, com 8 testes e release `v0.1.0-foundation` |
+| entrega acadêmica | pendente de parceiro, validação de campo, relatório e vídeo |
+| operação offline | validada no navegador com sincronização posterior |
+| nuvem | configuração de contêiner pronta; homologação real ainda não executada |
 
 ## Primeira entrega
 
@@ -18,10 +31,9 @@ O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo.
 
 ## Executar
 
-Requer Node.js 22.5 ou superior.
+Requer Node.js 22.5 ou superior. Após clonar o repositório e entrar em sua pasta:
 
 ```powershell
-cd "C:\Users\pedro\Documents\Projetos\UNIVESP\Estudos UNIVESP\pi3-vertice"
 npm install
 npm start
 ```
@@ -57,3 +69,10 @@ Os registros iniciais são fictícios. A solução ainda não possui autenticaç
 - [Fundação e decisões](docs/01-fundacao.md)
 - [Requisitos e arquitetura](docs/02-requisitos-e-arquitetura.md)
 - [Revisão de código](docs/03-revisao-de-codigo.md)
+- [Modelo de relatório parcial](docs/04-relatorio-parcial.md)
+- [Modelo de relatório final](docs/05-relatorio-final.md)
+- [Implantação em nuvem](docs/06-implantacao-em-nuvem.md)
+
+## Governança e licença
+
+As atividades devem ser acompanhadas por issues e milestones alinhados ao AVA. Consulte [SECURITY.md](SECURITY.md). O código usa [licença MIT](LICENSE); localização, fotos e evidências reais permanecem sujeitas a consentimento e retenção definidos com o parceiro.

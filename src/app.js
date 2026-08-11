@@ -54,6 +54,8 @@ export function createApp({ database }) {
     next();
   });
 
+  app.get('/health', (req, res) => res.json({ status: 'ok', service: 'vertice' }));
+
   app.get('/', (req, res) => res.render('index', {
     title: 'Painel de campo', indicators: database.indicators(), recent: database.list().slice(0, 4),
   }));
