@@ -34,7 +34,7 @@ O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo.
 Requer Node.js 22.5 ou superior. Após clonar o repositório e entrar em sua pasta:
 
 ```powershell
-npm install
+npm ci
 npm start
 ```
 
