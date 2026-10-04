@@ -5,3 +5,8 @@ docs
 node_modules
 npm-debug.log*
 test
+e2e
+scripts
+playwright.config.js
+test-results
+playwright-report

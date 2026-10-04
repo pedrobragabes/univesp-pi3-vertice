@@ -12,6 +12,13 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 180px; }
+.local-queue-list { padding: 0; list-style: none; overflow-wrap: anywhere; }
+.local-queue-list li { padding: 1rem 0; border-bottom: var(--line); }
+.local-queue-list p { margin: .4rem 0; }
+.local-queue-list button { display: flex; margin-top: .75rem; }
+button:disabled { cursor: wait; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0; color: var(--ink); background: var(--paper); font-family: var(--body); line-height: 1.55;

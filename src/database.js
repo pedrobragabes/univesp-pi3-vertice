@@ -2,6 +2,15 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+
+class IdempotencyConflictError extends Error {
+  constructor(id) {
+    super('Já existe uma ficha no servidor para este envio. Confira o conteúdo antes de alterar.');
+    this.code = 'IDEMPOTENCY_CONFLICT';
+    this.id = id;
+  }
+}
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -28,6 +37,10 @@ const schema = `
     resultado TEXT NOT NULL CHECK(resultado IN ('Conforme', 'Atenção', 'Não se aplica')),
     observacao TEXT DEFAULT '',
     UNIQUE(inspecao_id, codigo)
+  );
+  CREATE TABLE IF NOT EXISTS inspecoes_submetidas (
+    inspecao_id INTEGER PRIMARY KEY REFERENCES inspecoes(id) ON DELETE CASCADE,
+    submission_hash TEXT NOT NULL
   );
 `;
 
@@ -60,10 +73,11 @@ export function createDatabase({ filename, seed = true } = {}) {
   const dbPath = filename || resolve(projectRoot, 'data', 'vertice.db');
   if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
-  db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+  db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
   db.exec(schema);
 
-  const selectByClientId = db.prepare('SELECT id FROM inspecoes WHERE client_id = ?');
+  const selectByClientId = db.prepare('SELECT i.id, s.submission_hash FROM inspecoes i LEFT JOIN inspecoes_submetidas s ON s.inspecao_id = i.id WHERE i.client_id = ?');
+  const insertSubmission = db.prepare('INSERT INTO inspecoes_submetidas (inspecao_id, submission_hash) VALUES (?, ?)');
   const insertInspection = db.prepare(`
     INSERT INTO inspecoes (client_id, titulo, tipo, local, responsavel, latitude, longitude, observacoes, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -74,18 +88,29 @@ export function createDatabase({ filename, seed = true } = {}) {
   `);
 
   function create(inspection) {
-    if (inspection.clientId) {
-      const existing = selectByClientId.get(inspection.clientId);
-      if (existing) return { id: existing.id, created: false };
-    }
-    db.exec('BEGIN');
+    const submissionHash = createHash('sha256').update(JSON.stringify({
+      title: inspection.title, type: inspection.type, place: inspection.place,
+      responsible: inspection.responsible, latitude: inspection.latitude, longitude: inspection.longitude,
+      notes: inspection.notes, status: inspection.status,
+      items: inspection.items.map(({ code, result, note }) => ({ code, result, note })).sort((a, b) => a.code.localeCompare(b.code)),
+    })).digest('hex');
+    db.exec('BEGIN IMMEDIATE');
     try {
+      if (inspection.clientId) {
+        const existing = selectByClientId.get(inspection.clientId);
+        if (existing) {
+          if (existing.submission_hash !== submissionHash) throw new IdempotencyConflictError(existing.id);
+          db.exec('COMMIT');
+          return { id: existing.id, created: false };
+        }
+      }
       const result = insertInspection.run(
         inspection.clientId || null, inspection.title, inspection.type, inspection.place, inspection.responsible,
         inspection.latitude, inspection.longitude, inspection.notes, inspection.status,
       );
       const id = Number(result.lastInsertRowid);
       for (const item of inspection.items) insertItem.run(id, item.code, item.label, item.result, item.note);
+      insertSubmission.run(id, submissionHash);
       db.exec('COMMIT');
       return { id, created: true };
     } catch (error) {

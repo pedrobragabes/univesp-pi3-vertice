@@ -20,12 +20,14 @@ export function clean(value) {
 }
 
 function coordinate(value, min, max) {
-  if (value === '' || value === null || value === undefined) return null;
+  if (value === null || value === undefined || (typeof value === 'string' && !value.trim())) return null;
+  if (!['string', 'number'].includes(typeof value)) return Number.NaN;
   const number = Number(value);
   return Number.isFinite(number) && number >= min && number <= max ? number : Number.NaN;
 }
 
 export function validateInspection(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) body = {};
   const rawItems = Array.isArray(body.itens)
     ? body.itens
     : checklist.map(({ code, label }) => ({
@@ -45,12 +47,16 @@ export function validateInspection(body = {}) {
     longitude: coordinate(body.longitude, -180, 180),
     notes: clean(body.observacoes) || clean(body.notes),
     status: clean(body.status) || 'Enviada',
-    items: rawItems.map((item, index) => ({
-      code: clean(item.code) || checklist[index]?.code || `item-${index + 1}`,
-      label: clean(item.label) || checklist[index]?.label || `Item ${index + 1}`,
-      result: clean(item.result),
-      note: clean(item.note),
-    })),
+    items: rawItems.map((item, index) => {
+      const record = item && typeof item === 'object' && !Array.isArray(item) ? item : {};
+      const code = clean(record.code);
+      return {
+        code,
+        label: checklist.find((check) => check.code === code)?.label || `Item ${index + 1}`,
+        result: clean(record.result),
+        note: clean(record.note),
+      };
+    }),
   };
 
   const errors = [];
@@ -64,6 +70,10 @@ export function validateInspection(body = {}) {
   if (inspection.notes.length > 1500) errors.push('As observações devem ter no máximo 1.500 caracteres.');
   if (!inspectionStatuses.includes(inspection.status)) errors.push('O status informado é inválido.');
   if (inspection.items.length !== checklist.length) errors.push('O checklist deve conter todos os itens previstos.');
+  if (new Set(inspection.items.map((item) => item.code)).size !== checklist.length ||
+      inspection.items.some((item) => !checklist.some((check) => check.code === item.code))) {
+    errors.push('O checklist deve conter cada item previsto uma única vez.');
+  }
   for (const item of inspection.items) {
     if (!itemResults.includes(item.result)) errors.push(`Selecione um resultado válido para “${item.label}”.`);
     if (item.note.length > 500) errors.push(`A observação de “${item.label}” deve ter no máximo 500 caracteres.`);

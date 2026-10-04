@@ -37,7 +37,9 @@ flowchart LR
 
 ## Modelo de dados
 
-Uma inspeção possui vários itens de checklist. `client_id` é opcional no cadastro tradicional e obrigatório na fila offline. A unicidade desse valor permite reconhecer reenvio sem inserir duplicata.
+Uma inspeção possui os quatro itens canônicos do checklist, com códigos únicos. `client_id` é opcional no cadastro tradicional e obrigatório na fila offline. A tabela `inspecoes_submetidas` registra o hash do conteúdo inicial junto da criação, na mesma transação. Reenvio idêntico é reconhecido; conteúdo alterado sob a mesma chave retorna `409`. O status operacional pode mudar sem modificar o recibo inicial. Registros antigos sem recibo são preservados e exigem comparação manual, sem backfill.
+
+No cliente, IndexedDB confirma a transação antes de anunciar salvamento. Uma confirmação do servidor só remove a fila quando o conteúdo local ainda é o enviado; edição concorrente mais recente não é descartada. Revisão offline, exportação JSON e estados de falha são acessíveis pelo painel local. Fichas abertas para revisão não participam do envio automático até o usuário salvar.
 
 ## Limites arquiteturais
 
