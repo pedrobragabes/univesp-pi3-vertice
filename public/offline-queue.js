@@ -175,6 +175,8 @@ function flushQueue(force = false) {
     if (!navigator.onLine) return;
     const pending = await queue.all();
     for (const item of pending) {
+      if (!navigator.onLine) break;
+      if (submitting && form?.elements.client_id.value === item.client_id) continue;
       if (item.client_id === editingLocalId) continue;
       if (!force && item._failure?.reviewRequired) continue;
       let confirmed;

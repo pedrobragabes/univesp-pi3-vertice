@@ -10,7 +10,7 @@ O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo.
 
 | Dimensão | Situação |
 |---|---|
-| fundação técnica | release histórico `v0.1.0-foundation`; revisão 0.1.2 protege fila e conflitos, com 13 testes Node e 15 E2E |
+| fundação técnica | release histórico `v0.1.0-foundation`; revisão 0.1.2 protege fila e conflitos, com 13 testes Node e 17 E2E |
 | entrega acadêmica | pendente de parceiro, validação de campo, relatório e vídeo |
 | operação offline | reload offline, revisão, exportação, falhas de gravação/remoção e concorrência entre abas testados em Chromium; dispositivo físico pendente |
 | nuvem | configuração de contêiner pronta; homologação real ainda não executada |

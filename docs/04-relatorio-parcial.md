@@ -15,8 +15,9 @@ em `01-fundacao.md`, ainda sem levantamento real confirmado.
 
 O protótipo busca registrar uma inspeção com checklist, consultar andamento e tolerar
 falhas de conexão sem duplicar ou descartar registros silenciosamente. A revisão tratou
-três falhas reproduzidas: sucesso da requisição IndexedDB antes de confirmar a transação,
-reenvio alterado aceito como a ficha anterior e checklist malformado retornando erro interno.
+quatro falhas reproduzidas: sucesso da requisição IndexedDB antes de confirmar a transação,
+reenvio alterado aceito como a ficha anterior, checklist malformado retornando erro interno
+e tentativa de envio depois de perder a conexão durante a leitura da fila.
 
 O objetivo desta fatia foi tornar verificável o percurso entre formulário, cópia local
 e confirmação do servidor, acrescentando revisão e exportação das pendências. A redução
@@ -28,7 +29,7 @@ de tempo, satisfação dos usuários e adequação do checklist não foram medid
 | --- | --- | --- |
 | RF01/RF03 — ficha e checklist | Quatro códigos únicos e rótulos canônicos; entrada malformada é recusada antes do banco. | Casos Node de validação, sem gravação na recusa. |
 | RF02/RF07 — consulta e status | API/lista mantidas; status pode mudar sem substituir o recibo inicial. | Criação, filtros, atualização e replay após alteração de status. |
-| RF04 — guardar durante falha | Gravar antes do fetch e aguardar o commit da transação local. | Aborto de gravação mantém campos e não confirma salvamento; reload offline preserva fila. |
+| RF04 — guardar durante falha | Gravar antes do fetch e aguardar o commit da transação local. | Aborto de gravação mantém campos e não confirma salvamento; reload offline preserva fila; queda durante leitura não inicia envio. |
 | RF05 — reenvio sem duplicar | Recibo do conteúdo inicial; `409` em conflito; remover cópia apenas se ainda for a versão enviada. | Aceite sem resposta, correção de `422`, edição em outra aba e falha de remoção após aceite. |
 | RF06 — posição opcional | Ação explícita existente; booleanos/objetos inválidos e espaços opcionais tratados na API. | Testes sintéticos de coordenadas; localização física não foi solicitada. |
 | Revisar pendências | Painel local, revisão offline, exportação JSON e comparação com o servidor. | Download lido e conteúdo conferido; cópia conflitante só removida por confirmação do usuário. |
@@ -51,10 +52,10 @@ npm run test:e2e
 npm audit
 ```
 
-No ambiente local Node 24, passaram 13 testes Node e 15 E2E: sete cenários repetidos em
+No ambiente local Node 24, passaram 13 testes Node e 17 E2E: oito cenários repetidos em
 desktop/mobile e um cenário de layout/teclado cobrindo quatro páginas em 320 px. As
 auditorias Axe dos estados registrados não apresentaram violações. Antes da correção,
-os testes de conflito, checklist malformado e aborto de IndexedDB falharam. O audit
+os testes de conflito, checklist malformado , aborto de IndexedDB e queda durante leitura da fila falharam. O audit
 ficou sem alertas conhecidos após o patch compatível de brace-expansion. O CI configurado
 acrescenta execução Linux, CodeQL, varredura de segredos e build do contêiner; evidências
 remotas ficam nos checks da PR.

@@ -4,15 +4,18 @@
 
 Os testes reproduziram falha de confirmação local antes do commit do IndexedDB,
 aceitação de conteúdo alterado sob a mesma chave e erro interno com checklist malformado.
+Também foi reproduzido o envio indevido quando a conexão cai durante a leitura local da fila.
 As regressões foram executadas antes e depois da correção.
 
 A fila agora aguarda o commit, preserva campos quando falha, grava antes do envio,
 valida a confirmação e só remove a versão efetivamente enviada. Revisão offline,
-exportação por ação explícita, conflitos e falhas de remoção são visíveis. Recibos
+exportação por ação explícita, conflitos e falhas de remoção são visíveis. A conexão é
+conferida novamente após a leitura local; um envio manual em andamento não concorre
+com a sincronização automática da mesma ficha. Recibos
 SQLite transacionais preservam o conteúdo inicial, inclusive após mudança de status e
 reinício. Registros antigos sem recibo exigem comparação manual, sem backfill inventado.
 
-Validação local: 13 testes Node e 15 E2E Chromium; sete cenários em desktop/mobile e
+Validação local: 13 testes Node e 17 E2E Chromium; oito cenários em desktop/mobile e
 quatro páginas em 320 px, incluindo o atalho de teclado. O CI executa a mesma camada
 com SQLite isolado, auditoria de dependências, CodeQL, Gitleaks e build da imagem.
 O audit local ficou sem alertas após atualizar brace-expansion; a PR antiga do qs

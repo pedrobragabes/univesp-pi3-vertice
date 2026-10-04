@@ -73,6 +73,9 @@ test('fila sobrevive a reload offline, permite revisão/exportação e sincroniz
   expect(exported.items[0].titulo).toBe('Ficha revisada <em>sem HTML</em>');
   await expect(page.locator('[data-local-queue-list] em')).toHaveCount(0);
   await audit(page, info, 'offline-review');
+  const beforeReconnect = await (await page.request.get('/api/inspecoes')).json();
+  await writeFile(info.outputPath('diagnostic-server-before-reconnect.json'), JSON.stringify(beforeReconnect, null, 2));
+  expect(beforeReconnect.items.filter((item) => item.client_id === exported.items[0].client_id)).toHaveLength(0);
   await page.goto('/');
   await context.setOffline(false);
   await expect(page.locator('.queue-badge [data-queue-count]')).toHaveText('0');
@@ -200,4 +203,46 @@ test('falha de remoção local após aceite mantém cópia e permite reenvio sem
   await expect(page.locator('[data-sync-status]')).toContainText('Inspeção sincronizada');
   const data = await (await page.request.get('/api/inspecoes')).json();
   expect(data.items.filter((item) => item.client_id === id)).toHaveLength(1);
+});
+
+
+test('perda de conexão durante leitura da fila impede envio até nova reconexão', async ({ page }) => {
+  let posts = 0;
+  await page.route('**/api/inspecoes', async (route) => {
+    if (route.request().method() === 'POST') posts++;
+    await route.continue();
+  });
+  await page.goto('/inspecoes/nova');
+  await fillForm(page, 'Ficha aguardando uma conexão estável');
+  await page.evaluate(() => {
+    window.queueTestOnline = false;
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => window.queueTestOnline });
+  });
+  await page.getByRole('button', { name: 'Salvar inspeção', exact: true }).click();
+  await expect(page.locator('.queue-badge [data-queue-count]')).toHaveText('1');
+  const id = await page.locator('[name="client_id"]').inputValue();
+  await page.evaluate(() => {
+    const getAll = IDBObjectStore.prototype.getAll;
+    IDBObjectStore.prototype.getAll = function (...args) {
+      const request = getAll.apply(this, args);
+      request.addEventListener('success', () => {
+        window.queueTestOnline = false;
+        window.queueReadFinished = true;
+      }, { once: true });
+      return request;
+    };
+    window.restoreQueueRead = () => { IDBObjectStore.prototype.getAll = getAll; delete navigator.onLine; };
+    window.queueTestOnline = true;
+    window.dispatchEvent(new Event('online'));
+  });
+  await page.waitForFunction(() => window.queueReadFinished);
+  await expect(page.locator('[data-local-queue-status]')).toContainText('enquanto não há conexão');
+  expect(posts).toBe(0);
+  const before = await (await page.request.get('/api/inspecoes')).json();
+  expect(before.items.filter((item) => item.client_id === id)).toHaveLength(0);
+  await page.evaluate(() => { window.restoreQueueRead(); window.dispatchEvent(new Event('online')); });
+  await expect(page.locator('.queue-badge [data-queue-count]')).toHaveText('0');
+  const after = await (await page.request.get('/api/inspecoes')).json();
+  expect(after.items.filter((item) => item.client_id === id)).toHaveLength(1);
+  expect(posts).toBe(1);
 });
