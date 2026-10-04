@@ -10,9 +10,9 @@ O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo.
 
 | Dimensão | Situação |
 |---|---|
-| fundação técnica | concluída, com 8 testes e release `v0.1.0-foundation` |
+| fundação técnica | release histórico `v0.1.0-foundation`; revisão 0.1.2 protege fila e conflitos, com 13 testes Node e 15 E2E |
 | entrega acadêmica | pendente de parceiro, validação de campo, relatório e vídeo |
-| operação offline | validada no navegador com sincronização posterior |
+| operação offline | reload offline, revisão, exportação, falhas de gravação/remoção e concorrência entre abas testados em Chromium; dispositivo físico pendente |
 | nuvem | configuração de contêiner pronta; homologação real ainda não executada |
 
 ## Primeira entrega
@@ -34,7 +34,7 @@ O **Vértice** é uma PWA experimental para inspeções e ocorrências em campo.
 Requer Node.js 22.5 ou superior. Após clonar o repositório e entrar em sua pasta:
 
 ```powershell
-npm install
+npm ci
 npm start
 ```
 
@@ -43,6 +43,8 @@ Acesse `http://localhost:3002`.
 ```powershell
 npm run check
 npm test
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ## API
@@ -54,11 +56,17 @@ npm test
 | `GET` | `/api/inspecoes/:id` | consultar ficha e checklist |
 | `PATCH` | `/api/inspecoes/:id/status` | atualizar estado da ficha |
 
-O `POST` retorna `201` ao criar e `200` quando o mesmo `client_id` já foi sincronizado. Essa idempotência evita duplicação após incerteza de rede.
+O `POST` retorna `201` ao criar e `200` quando o mesmo `client_id` e conteúdo normalizado já foram sincronizados. Conteúdo diferente com a mesma chave retorna `409`, preservando o original e a cópia local. O recibo mantém o conteúdo inicial mesmo quando o status da ficha muda. Checklists precisam conter os quatro códigos previstos uma única vez; rótulos são canônicos.
+
+A inicialização cria uma tabela adicional de recibos, sem alterar as fichas anteriores. Registros antigos sem recibo retornam conflito para comparação manual; não recebem um histórico inicial inventado. O ensaio de reinício/compatibilidade usa exclusivamente arquivo SQLite temporário, e nenhum banco anterior desta máquina foi aberto ou migrado.
 
 ## Funcionamento offline
 
-O service worker guarda o shell essencial. Quando o envio pela API falha por indisponibilidade de rede, a ficha é armazenada no IndexedDB do dispositivo. O evento `online` inicia nova tentativa. Erros de validação permanecem na fila para correção futura e não são descartados silenciosamente.
+O service worker guarda o shell essencial. Antes de tentar enviar, a ficha é gravada no IndexedDB; a confirmação de salvamento espera o término da transação. Falha local mantém os campos e é informada sem afirmar que a ficha foi salva. O evento `online` inicia nova tentativa, e uma resposta inválida não remove a cópia local. A exclusão após aceite só ocorre se o conteúdo local ainda corresponder à versão enviada: uma edição mais recente em outra aba permanece na fila.
+
+O painel **Fichas neste dispositivo** permite revisar inclusive offline, tentar sincronizar e exportar JSON por ação explícita. Erros `422` e conflitos `409` ficam visíveis e aguardam revisão. Uma ficha aberta pelo link Revisar não é enviada automaticamente enquanto está sendo editada; use Salvar inspeção. Nos conflitos, compare o registro do servidor e exporte as alterações antes de remover a cópia local, ação que exige confirmação e preserva o servidor. A exportação é um arquivo privado das fichas, não um serviço de backup ou importação.
+
+Os E2E usam servidor em loopback e SQLite em memória, com fichas fictícias. Há cenários em 1440/390 px, inspeção de quatro páginas em 320 px e auditorias Axe nos estados testados. Não houve uso de geolocalização real, parceiro, conta externa ou implantação. Axe não certifica acessibilidade completa nem instalação em aparelhos físicos.
 
 ## Limites
 

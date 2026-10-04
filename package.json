@@ -1,6 +1,6 @@
 {
   "name": "pi3-vertice",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "PI III - PWA para inspeções e ocorrências em campo",
   "type": "module",
@@ -8,11 +8,18 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "test": "node --test",
+    "test:e2e": "playwright test",
     "check": "node --check server.js && node --check src/app.js && node --check src/database.js && node --check public/app.js && node --check public/offline-queue.js && node --check public/service-worker.js"
   },
-  "engines": { "node": ">=22.5" },
+  "engines": {
+    "node": ">=22.5"
+  },
   "dependencies": {
     "ejs": "^3.1.10",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0"
   }
 }

@@ -2,7 +2,7 @@
 
 ## Estado
 
-Há uma imagem Docker reproduzível; a implantação pública e os testes de campo ainda precisam ser registrados.
+Há uma imagem Docker reproduzível; a implantação pública e os testes de campo ainda precisam ser registrados. O protótipo ainda não tem autenticação/autorização ou política aprovada de dados. Use os ensaios somente com fixtures isolados; publicação com dados reais depende desses controles e do aceite do parceiro.
 
 ## Contrato de execução
 
@@ -16,9 +16,9 @@ Há uma imagem Docker reproduzível; a implantação pública e os testes de cam
 ## Homologação local
 
 ```bash
-docker build -t vertice:0.1.0 .
+docker build -t vertice:0.1.2 .
 docker volume create vertice-data
-docker run --rm -p 3002:3002 -v vertice-data:/app/data vertice:0.1.0
+docker run --rm -p 127.0.0.1:3002:3002 -v vertice-data:/app/data vertice:0.1.2
 curl http://localhost:3002/health
 ```
 

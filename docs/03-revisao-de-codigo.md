@@ -1,4 +1,29 @@
-# Revisão de código - versão 0.1.1
+# Revisão de código
+
+## Revisão 0.1.2 — 2026-10-04
+
+Os testes reproduziram falha de confirmação local antes do commit do IndexedDB,
+aceitação de conteúdo alterado sob a mesma chave e erro interno com checklist malformado.
+As regressões foram executadas antes e depois da correção.
+
+A fila agora aguarda o commit, preserva campos quando falha, grava antes do envio,
+valida a confirmação e só remove a versão efetivamente enviada. Revisão offline,
+exportação por ação explícita, conflitos e falhas de remoção são visíveis. Recibos
+SQLite transacionais preservam o conteúdo inicial, inclusive após mudança de status e
+reinício. Registros antigos sem recibo exigem comparação manual, sem backfill inventado.
+
+Validação local: 13 testes Node e 15 E2E Chromium; sete cenários em desktop/mobile e
+quatro páginas em 320 px, incluindo o atalho de teclado. O CI executa a mesma camada
+com SQLite isolado, auditoria de dependências, CodeQL, Gitleaks e build da imagem.
+O audit local ficou sem alertas após atualizar brace-expansion; a PR antiga do qs
+foi consolidada no conjunto da revisão.
+
+A ausência de autenticação, proteção/retenção da fila e política de dados continua
+limitando uso real. A interface de revisão/exportação resolve a limitação funcional
+`422` registrada abaixo, mas não constitui validação com parceiro ou backup externo.
+O relato 0.1.1 seguinte é histórico e preserva o ensaio anterior.
+
+## Histórico — versão 0.1.1
 
 ## Escopo
 

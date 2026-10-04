@@ -1,7 +1,7 @@
-const CACHE_NAME = 'vertice-shell-v2';
+const CACHE_NAME = 'vertice-shell-v3';
 const APP_SHELL = [
   '/', '/inspecoes', '/inspecoes/nova', '/offline', '/sobre',
-  '/styles.css?v=0.1.1', '/app.js?v=0.1.1', '/offline-queue.js?v=0.1.1',
+  '/styles.css?v=0.1.2', '/app.js?v=0.1.2', '/offline-queue.js?v=0.1.2',
   '/manifest.webmanifest', '/icon.svg',
 ];
 
@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('vertice-shell-') && key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
@@ -25,18 +25,19 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
-          if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        .then(async (response) => {
+          if (response.ok) await caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone())).catch(() => {});
           return response;
         })
-        .catch(async () => (await caches.match(event.request)) || caches.match('/offline')),
+        .catch(async () => (await caches.match(event.request)) ||
+          (url.pathname === '/inspecoes/nova' ? await caches.match('/inspecoes/nova') : undefined) || caches.match('/offline')),
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+    caches.match(event.request).then((cached) => cached || fetch(event.request).then(async (response) => {
+      if (response.ok) await caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone())).catch(() => {});
       return response;
     })),
   );

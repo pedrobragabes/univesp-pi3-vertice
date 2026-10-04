@@ -39,9 +39,9 @@ export function createApp({ database }) {
   app.set('view engine', 'ejs');
   app.set('views', resolve(projectRoot, 'views'));
   app.use(addSecurityHeaders);
+  app.use(rejectCrossSiteWrites);
   app.use(express.urlencoded({ extended: false, limit: '40kb' }));
   app.use(express.json({ limit: '40kb' }));
-  app.use(rejectCrossSiteWrites);
   app.use(express.static(resolve(projectRoot, 'public'), { maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
 
   app.use((req, res, next) => {
@@ -112,8 +112,18 @@ export function createApp({ database }) {
   app.get('/sobre', (req, res) => res.render('sobre', { title: 'Sobre o Vértice' }));
   app.use((req, res) => res.status(404).render('404', { title: 'Página não encontrada' }));
   app.use((error, req, res, next) => {
-    console.error(error);
     if (res.headersSent) return next(error);
+    if (error.code === 'IDEMPOTENCY_CONFLICT' && Number.isSafeInteger(error.id)) {
+      if (req.path.startsWith('/api/')) return res.status(409).json({ error: error.message, id: error.id });
+      return res.status(409).send(error.message);
+    }
+    if (error.type === 'entity.parse.failed' || error.type === 'entity.too.large') {
+      const status = error.type === 'entity.too.large' ? 413 : 400;
+      const message = status === 413 ? 'A ficha excede o limite de envio.' : 'O corpo da requisição é inválido.';
+      if (req.path.startsWith('/api/')) return res.status(status).json({ error: message });
+      return res.status(status).send(message);
+    }
+    console.error('Falha interna ao processar a requisição.');
     res.status(500).render('500', { title: 'Erro interno' });
   });
   return app;
